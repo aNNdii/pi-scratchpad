@@ -1,0 +1,14 @@
+# Whole-project checks. Type-aware lint and tsc both need the full project graph,
+# so they can't be scoped to staged files. Run them in parallel and fail the push
+# if either one fails.
+
+pnpm run lint &
+lint_pid=$!
+
+pnpm run verify &
+verify_pid=$!
+
+wait "$lint_pid"; lint_status=$?
+wait "$verify_pid"; verify_status=$?
+
+[ "$lint_status" -eq 0 ] && [ "$verify_status" -eq 0 ]

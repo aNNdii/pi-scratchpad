@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Test and build artifacts
+coverage/
+*.tsbuildinfo
+*.tgz
+
+# Logs
+*.log
+
+# Local environment and tooling
+.env
+.env.*
+.idea/
+.vscode/
+.DS_Store
+.worktrees/
+
+# Local planning documents (not versioned)
+docs/

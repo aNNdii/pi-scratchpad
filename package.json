@@ -1,0 +1,64 @@
+{
+  "name": "@anndii/pi-scratchpad",
+  "version": "0.1.0",
+  "description": "Session-scoped scratchpad directory for pi, shared with subagents and re-announced after compaction.",
+  "keywords": [
+    "pi-extension",
+    "pi-package",
+    "scratchpad"
+  ],
+  "homepage": "https://github.com/aNNdii/pi-scratchpad#readme",
+  "bugs": {
+    "url": "https://github.com/aNNdii/pi-scratchpad/issues"
+  },
+  "license": "MIT",
+  "author": "aNNdii",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aNNdii/pi-scratchpad.git"
+  },
+  "files": [
+    "src",
+    "!src/**/*.spec.ts"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "prepare": "husky || true",
+    "test": "vitest run --coverage",
+    "verify": "tsc",
+    "lint": "oxlint -c .oxlintrc.ts .",
+    "lint:fix": "oxlint -c .oxlintrc.ts . --fix && pnpm lint",
+    "format": "oxfmt . && pnpm lint:fix"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "0.99.1",
+    "@types/node": "^26.5.1",
+    "@vitest/coverage-v8": "5.0.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.5.1",
+    "oxfmt": "^0.67.0",
+    "oxlint": "^1.82.0",
+    "oxlint-tsgolint": "^7.0.2001",
+    "typescript": "^7.0.2",
+    "vitest": "5.0.0"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  },
+  "lint-staged": {
+    "*.{ts,json,jsonc,md}": "oxfmt"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "packageManager": "pnpm@12.8.1",
+  "pi": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  }
+}

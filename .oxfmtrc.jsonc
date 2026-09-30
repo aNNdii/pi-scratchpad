@@ -1,0 +1,26 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "printWidth": 120,
+  "tabWidth": 2,
+  "useTabs": false,
+  "semi": true,
+  "singleQuote": true,
+  "quoteProps": "as-needed",
+  "jsxSingleQuote": false,
+  "trailingComma": "es5",
+  "bracketSpacing": true,
+  "bracketSameLine": false,
+  "arrowParens": "avoid",
+  "endOfLine": "lf",
+  "ignorePatterns": ["**/.oxfmtrc.jsonc", "pnpm-lock.yaml"],
+  "sortImports": {
+    "newlinesBetween": true,
+    "groups": [
+      ["builtin", "external"],
+      "internal",
+      "parent",
+      "sibling",
+      "index",
+    ],
+  },
+}
