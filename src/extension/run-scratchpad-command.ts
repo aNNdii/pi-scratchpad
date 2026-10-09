@@ -18,6 +18,10 @@ const runClean = (
 
   switch (option) {
     case undefined: {
+      if (ttlDays <= 0) {
+        return 'TTL cleanup is disabled (ttlDays is 0); nothing was deleted. Use `/scratchpad clean --all` to delete all inactive scratchpads.';
+      }
+
       const deleted = cleanupExpired(baseDir, ttlDays, protectedDirs);
 
       return `Deleted ${deleted.length} scratchpad(s) unused for more than ${ttlDays} days.`;
@@ -38,7 +42,11 @@ const runClean = (
   }
 };
 
-/** Handles `/scratchpad [clean [--all|--current]]` (spec §9.5). */
+/**
+ * Handles `/scratchpad [clean [--all|--current]]`: without arguments it shows the index; `clean`
+ * deletes scratchpads unused for more than `ttlDays`, `--all` every inactive one, `--current` empties
+ * this session's scratchpad. Never deletes the scratchpads in `protectedDirs`.
+ */
 export const runScratchpadCommand = (
   args: string,
   ctx: Pick<ExtensionCommandContext, 'ui'>,

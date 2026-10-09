@@ -1,12 +1,12 @@
 import { lstatSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
-import { MARKER, readMarker } from '../store';
+import { readLastUse } from '../store';
 
 export type Candidate = {
   dir: string;
-  /** Marker mtime: last use of the scratchpad. */
-  mtimeMs: number;
+  /** Last use of the scratchpad in epoch milliseconds. */
+  lastUseMs: number;
 };
 
 const isRealDirectory = (path: string): boolean => {
@@ -26,8 +26,10 @@ const readDirectory = (path: string): string[] => {
 };
 
 /**
- * Scratchpads that may be deleted: real directories exactly at `<base>/<slug>/<session>` with a
- * valid marker file, not listed in `protectedDirs` (spec §11).
+ * Scratchpads that may be deleted: real directories (not symlinks) exactly at
+ * `<baseDir>/<cwd-slug>/<session-id>` that carry a valid marker and are not listed in
+ * `protectedDirs`. Anything else below `baseDir`, including directories that vanish meanwhile, is
+ * never a candidate.
  */
 export const findCandidates = (baseDir: string, protectedDirs: Set<string>): Candidate[] => {
   if (!isRealDirectory(baseDir)) return [];
@@ -41,9 +43,10 @@ export const findCandidates = (baseDir: string, protectedDirs: Set<string>): Can
 
     for (const session of readDirectory(slugDir)) {
       const dir = join(slugDir, session);
-      if (!isRealDirectory(dir) || protectedResolved.has(resolve(dir)) || readMarker(dir) == null) continue;
+      if (!isRealDirectory(dir) || protectedResolved.has(resolve(dir))) continue;
 
-      candidates.push({ dir, mtimeMs: lstatSync(join(dir, MARKER)).mtimeMs });
+      const lastUseMs = readLastUse(dir);
+      if (lastUseMs != null) candidates.push({ dir, lastUseMs });
     }
   }
 

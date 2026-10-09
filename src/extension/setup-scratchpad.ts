@@ -3,8 +3,9 @@ import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-a
 import { cleanupExpired } from '../cleanup';
 import { loadConfig } from '../config';
 import { buildIndexText } from '../index-builder';
+import { labelFromSessionName } from '../paths';
 import { scratchpadSection } from '../prompt';
-import { getRegistry, labelFromSessionName, resolveRole, sessionKey } from '../registry';
+import { getRegistry, resolveRole, sessionKey } from '../registry';
 import { saveAgentResult, touchMarker } from '../store';
 
 import { INDEX_MESSAGE, PROMPT_SECTION } from './custom-types';
@@ -18,14 +19,23 @@ export type ScratchpadDependencies = {
   agentDir: string;
 };
 
-const warn = (ctx: Pick<ExtensionContext, 'hasUI' | 'ui'>, message: string): void => {
+type WarningContext = Pick<ExtensionContext, 'hasUI' | 'ui'>;
+
+const warn = (ctx: WarningContext, message: string): void => {
   if (ctx.hasUI) ctx.ui.notify(`Scratchpad: ${message}`, 'warning');
 };
 
-/** Wires the scratchpad to pi events (spec §8–§9). */
+/**
+ * Wires the scratchpad to pi: prepares it on session start, announces it in the system prompt, saves
+ * subagent results, re-announces the index after compaction and registers `/scratchpad`. Failures
+ * never reach pi; the session continues without a scratchpad and the user is warned.
+ */
 export const setupScratchpad = (pi: ExtensionAPI, dependencies: ScratchpadDependencies): void => {
   const registry = getRegistry();
   let state: ScratchpadState | undefined;
+  // Context of the current session for warnings outside pi event handlers; pi invalidates it on
+  // session replacement, which always passes through `session_shutdown`.
+  let sessionCtx: WarningContext | undefined;
 
   const protectedDirs = (): Set<string> => {
     const dirs = registry.activeDirs();
@@ -48,6 +58,7 @@ export const setupScratchpad = (pi: ExtensionAPI, dependencies: ScratchpadDepend
 
   pi.on('session_start', (event, ctx) => {
     state = undefined;
+    sessionCtx = ctx;
 
     try {
       const config = loadConfig({ cwd: ctx.cwd, agentDir: dependencies.agentDir });
@@ -102,8 +113,10 @@ export const setupScratchpad = (pi: ExtensionAPI, dependencies: ScratchpadDepend
 
     try {
       saveAgentResult(state.dir, result);
-    } catch {
-      // The result stays available through the subagent tools; nothing to surface here.
+    } catch (error) {
+      // The prompt promises saved results; the agent cannot notice a missing file until it needs it.
+      if (sessionCtx != null)
+        warn(sessionCtx, `could not save the result of ${result.type} ${result.id} (${errorMessage(error)})`);
     }
   };
 
@@ -130,6 +143,7 @@ export const setupScratchpad = (pi: ExtensionAPI, dependencies: ScratchpadDepend
     if (state != null) registry.unregister(state.key);
 
     state = undefined;
+    sessionCtx = undefined;
   });
 
   pi.registerCommand('scratchpad', {

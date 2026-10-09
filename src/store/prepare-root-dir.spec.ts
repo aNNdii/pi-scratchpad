@@ -54,6 +54,19 @@ describe('prepareRootDir', () => {
   it('should report recreated when the session had a scratchpad before', () =>
     expect(prepareRootDir(createOptions(join(root, 's1'), { hadScratchpad: true }))).toBe('recreated'));
 
+  it('should not copy in-flight atomic writes of a fork source', () => {
+    const source = join(root, 'source');
+    prepareRootDir({ dir: source, sessionId: 'p1', cwd: '/w', hadScratchpad: false });
+    writeFileSync(join(source, '.a.md.1.abcdef01.tmp'), 'partial');
+    writeFileSync(join(source, 'draft.tmp'), 'draft');
+
+    const dir = join(root, 'fork');
+    prepareRootDir(createOptions(dir, { forkSource: { dir: source, sessionId: 'p1' } }));
+
+    expect(existsSync(join(dir, '.a.md.1.abcdef01.tmp'))).toBe(false);
+    expect(readFileSync(join(dir, 'draft.tmp'), 'utf8')).toBe('draft');
+  });
+
   it('should copy a fork source without symlinks and record forkedFrom', () => {
     const source = join(root, 'source');
     prepareRootDir({ dir: source, sessionId: 'p1', cwd: '/w', hadScratchpad: false });

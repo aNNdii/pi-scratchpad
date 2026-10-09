@@ -3,7 +3,6 @@ export type Role = 'root' | 'child';
 export type RegistryEntry = {
   dir: string;
   role: Role;
-  label?: string;
 };
 
 /** Sessions of this process that currently use a scratchpad, keyed by session file (or `mem:<id>`). */
@@ -22,8 +21,8 @@ export class Registry {
     return this.entries.get(key);
   }
 
-  activeRootKeys(): string[] {
-    return [...this.entries].filter(([, entry]) => entry.role === 'root').map(([key]) => key);
+  activeRoots(): RegistryEntry[] {
+    return [...this.entries.values()].filter(entry => entry.role === 'root');
   }
 
   activeDirs(): Set<string> {

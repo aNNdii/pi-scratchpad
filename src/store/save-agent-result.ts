@@ -1,7 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
 
-import { agentLabel } from '../registry';
+import { agentLabel, agentResultFile } from '../paths';
 
 import { writeFileAtomic } from './write-file-atomic';
 
@@ -33,7 +32,7 @@ const formatResultBlock = (result: AgentResult, now: Date): string => {
 
 /** Persists a subagent result as `agents/<type>-<id8>.md`; repeated results are appended. */
 export const saveAgentResult = (dir: string, result: AgentResult, now: Date = new Date()): string => {
-  const file = join(dir, 'agents', `${agentLabel(result.type, result.id)}.md`);
+  const file = agentResultFile(dir, agentLabel(result.type, result.id));
   const block = formatResultBlock(result, now);
   const previous = existsSync(file) ? readFileSync(file, 'utf8') : undefined;
 

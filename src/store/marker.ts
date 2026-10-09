@@ -1,3 +1,4 @@
+/** Content of the marker file (`MARKER`) of a scratchpad. */
 export type Marker = {
   version: 1;
   sessionId: string;
@@ -5,11 +6,3 @@ export type Marker = {
   createdAt: string;
   forkedFrom?: string;
 };
-
-export const createMarker = (sessionId: string, cwd: string, forkedFrom?: string): Marker => ({
-  version: 1,
-  sessionId,
-  cwd,
-  createdAt: new Date().toISOString(),
-  ...(forkedFrom == null ? {} : { forkedFrom }),
-});
