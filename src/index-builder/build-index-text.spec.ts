@@ -35,10 +35,16 @@ describe('buildIndexText', () => {
 
   it('should skip the marker, temp files and symlinks', () => {
     writeEntry('old.md', '# Old', 1000);
-    writeEntry('agents/.x.md.1.ab.tmp', 'tmp', 4000);
+    writeEntry('agents/.x.md.1.abcdef01.tmp', 'tmp', 4000);
     symlinkSync(join(dir, 'old.md'), join(dir, 'link.md'));
 
     expect(buildIndexText(dir)).toContain('— 1 files,');
+  });
+
+  it('should list files an agent named *.tmp', () => {
+    writeEntry('draft.tmp', 'draft', 1000);
+
+    expect(buildIndexText(dir)).toContain('- draft.tmp · main · "draft"');
   });
 
   it('should render an empty scratchpad', () =>

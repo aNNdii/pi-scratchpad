@@ -8,7 +8,11 @@ export type RoleInput = {
 
 export type ResolvedRole = { role: 'root' } | { role: 'child'; dir: string };
 
-/** Decides whether a starting session is a root session or a subagent of a live session (spec §7). */
+/**
+ * Decides whether a starting session is a root session with its own scratchpad or a subagent that
+ * shares the scratchpad of a live session in this process. Only `startup` sessions can be children:
+ * either their `parentSession` is registered, or they are in-memory and exactly one root is active.
+ */
 export const resolveRole = (input: RoleInput, registry: Registry): ResolvedRole => {
   if (input.reason !== 'startup') return { role: 'root' };
 
@@ -17,9 +21,8 @@ export const resolveRole = (input: RoleInput, registry: Registry): ResolvedRole 
 
   if (input.hasSessionFile) return { role: 'root' };
 
-  const [onlyRoot, ...otherRoots] = registry.activeRootKeys();
-  const root = onlyRoot == null ? undefined : registry.get(onlyRoot);
-  if (root != null && otherRoots.length === 0) return { role: 'child', dir: root.dir };
+  const [onlyRoot, ...otherRoots] = registry.activeRoots();
+  if (onlyRoot != null && otherRoots.length === 0) return { role: 'child', dir: onlyRoot.dir };
 
   return { role: 'root' };
 };

@@ -13,7 +13,7 @@ export const cleanupExpired = (
   if (ttlDays <= 0) return [];
 
   const cutoff = now - ttlDays * DAY_MS;
-  const expired = findCandidates(baseDir, protectedDirs).filter(candidate => candidate.mtimeMs < cutoff);
+  const expired = findCandidates(baseDir, protectedDirs).filter(candidate => candidate.lastUseMs < cutoff);
 
   return removeScratchpads(
     baseDir,

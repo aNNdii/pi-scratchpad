@@ -6,9 +6,9 @@ describe('Registry', () => {
   it('should track active roots and dirs', () => {
     const registry = new Registry();
     registry.register('/p.jsonl', { dir: '/d', role: 'root' });
-    registry.register('/c.jsonl', { dir: '/d', role: 'child', label: 'explore-1' });
+    registry.register('/c.jsonl', { dir: '/d', role: 'child' });
 
-    expect(registry.activeRootKeys()).toEqual(['/p.jsonl']);
+    expect(registry.activeRoots()).toEqual([{ dir: '/d', role: 'root' }]);
     expect(registry.activeDirs()).toEqual(new Set(['/d']));
   });
 
@@ -18,6 +18,6 @@ describe('Registry', () => {
     registry.unregister('/p.jsonl');
     registry.unregister('/p.jsonl');
 
-    expect(registry.activeRootKeys()).toEqual([]);
+    expect(registry.activeRoots()).toEqual([]);
   });
 });

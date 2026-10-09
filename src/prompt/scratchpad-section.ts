@@ -1,6 +1,9 @@
-import { join } from 'node:path';
+import { agentWorkDir } from '../paths';
 
-/** System-prompt section announcing the scratchpad (spec §9.1). */
+/**
+ * System-prompt section that announces the scratchpad and the rules for using it. `childLabel` marks
+ * a subagent session and adds its own instructions, including its working folder.
+ */
 export const scratchpadSection = (dir: string, childLabel?: string): string => {
   const lines = [
     `Scratchpad directory: ${dir} — always use it for temporary files (intermediate results, scripts, outputs that don't belong in the project) instead of /tmp or other system temp directories; it is session-specific, isolated from the project, and can generally be used without permission prompts. Only use /tmp if the user explicitly asks.`,
@@ -10,7 +13,7 @@ export const scratchpadSection = (dir: string, childLabel?: string): string => {
 
   if (childLabel != null) {
     lines.push(
-      `You are subagent ${childLabel}; if the text above contains another "You are subagent" paragraph, it belongs to your parent and this one is yours. Within the scratchpad, this paragraph takes precedence for you, but it never grants write permission: if your instructions forbid creating files, create none. Address everything to the agent that delegated your task, through a self-contained final answer in the format your task asks for, otherwise a condensed summary of your findings, including open questions and unresolved conflicts, plus the paths of any result files you wrote, without repeating their contents; leave no messages or handoff files for other agents. Read only scratchpad files that your task names, that you wrote, or that your own subagents report; skip other index entries even if they look relevant. Write result files only when your task asks for them, at the path it gives, otherwise under ${join(dir, 'agents', childLabel)}/; keep any working notes and temporary files there as well.`
+      `You are subagent ${childLabel}; if the text above contains another "You are subagent" paragraph, it belongs to your parent and this one is yours. Within the scratchpad, this paragraph takes precedence for you, but it never grants write permission: if your instructions forbid creating files, create none. Address everything to the agent that delegated your task, through a self-contained final answer in the format your task asks for, otherwise a condensed summary of your findings, including open questions and unresolved conflicts, plus the paths of any result files you wrote, without repeating their contents; leave no messages or handoff files for other agents. Read only scratchpad files that your task names, that you wrote, or that your own subagents report; skip other index entries even if they look relevant. Write result files only when your task asks for them, at the path it gives, otherwise under ${agentWorkDir(dir, childLabel)}/; keep any working notes and temporary files there as well.`
     );
   }
 

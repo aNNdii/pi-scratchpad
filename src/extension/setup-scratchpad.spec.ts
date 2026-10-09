@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { cwdSlug } from '../paths';
+import { sessionDir } from '../paths';
 import { getRegistry } from '../registry';
 import { MARKER } from '../store';
 
@@ -78,7 +78,7 @@ const startRoot = async (id: string, overrides: Partial<FakeContextOptions> = {}
   setupScratchpad(pi as any, { agentDir });
   await pi.fire('session_start', { reason: 'startup' }, ctx);
 
-  return { pi, ctx, dir: join(base, cwdSlug(cwd), id) };
+  return { pi, ctx, dir: sessionDir(base, cwd, id) };
 };
 
 const readSection = async (pi: ReturnType<typeof createFakePi>, ctx: unknown) => {
@@ -146,6 +146,28 @@ describe('setupScratchpad', () => {
 
     expect(readFileSync(join(session.dir, 'agents', 'general-purpose-21de996f.md'), 'utf8')).toContain('done');
     expect(readFileSync(join(session.dir, 'agents', 'explore-aaaabbbb.md'), 'utf8')).toContain('Error: boom');
+
+    await shutdown(session);
+  });
+
+  it('should warn when a subagent result cannot be saved', async () => {
+    const session = await startRoot('root8');
+    writeFileSync(join(session.dir, 'agents'), 'not a folder');
+    session.pi.events.emit('subagents:completed', { id: '21de996f-4f16', type: 'Explore', result: 'done' });
+
+    expect(session.ctx.notes.at(-1)).toMatch(/could not save the result of Explore 21de996f-4f16/);
+
+    await shutdown(session);
+  });
+
+  it('should explain that /scratchpad clean does nothing when ttlDays is 0', async () => {
+    mkdirSync(join(cwd, '.pi'));
+    writeFileSync(join(cwd, '.pi', 'scratchpad.json'), JSON.stringify({ ttlDays: 0 }));
+
+    const session = await startRoot('root9');
+    await session.pi.commands.get('scratchpad').handler('clean', session.ctx);
+
+    expect(session.ctx.notes.at(-1)).toMatch(/TTL cleanup is disabled .*nothing was deleted/);
 
     await shutdown(session);
   });
@@ -225,6 +247,6 @@ describe('setupScratchpad', () => {
 
     await shutdown(session);
 
-    expect(getRegistry().activeRootKeys()).toEqual([]);
+    expect(getRegistry().activeRoots()).toEqual([]);
   });
 });

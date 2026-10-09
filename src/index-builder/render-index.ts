@@ -3,7 +3,10 @@ import { DEFAULT_INDEX_LIMITS, type IndexEntry, type IndexLimits } from './index
 
 const byteLength = (text: string): number => Buffer.byteLength(text);
 
-/** Renders the bounded index text (spec §10). */
+/**
+ * Renders the index text: a header and one line per entry, cut off after `limits.maxEntries` lines or
+ * before exceeding `limits.maxBytes`, with a trailing line that counts the omitted entries.
+ */
 export const renderIndex = (dir: string, entries: IndexEntry[], limits: IndexLimits = DEFAULT_INDEX_LIMITS): string => {
   const header =
     `Scratchpad index for ${dir} — ${entries.length} files, newest first. ` +

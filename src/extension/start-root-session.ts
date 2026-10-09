@@ -36,7 +36,11 @@ const resolveForkSource = (baseDir: string, sessionId: string, parentSession?: s
   return { dir: sessionDir(baseDir, header.cwd, header.id), sessionId: header.id };
 };
 
-/** Prepares the scratchpad of a root session and registers it (spec §8). */
+/**
+ * Prepares the scratchpad of a root session and registers it: reuses the directory of a resumed
+ * session, copies the source session's scratchpad for a fork, records a `scratchpad:init` entry on
+ * first use and tells the user when an earlier scratchpad is gone or could not be copied.
+ */
 export const startRootSession = (options: StartRootSessionOptions): ScratchpadState => {
   const { pi, ctx, registry, config, key, sessionId, parentSession } = options;
 

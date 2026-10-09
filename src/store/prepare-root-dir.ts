@@ -1,10 +1,10 @@
 import { cpSync, existsSync, mkdirSync, rmSync } from 'node:fs';
 import { basename, dirname } from 'node:path';
 
+import { isBookkeepingFile } from './is-bookkeeping-file';
 import { isSymlink } from './is-symlink';
-import { createMarker } from './marker';
 import { readMarker } from './read-marker';
-import { DIRECTORY_MODE, MARKER } from './store-constants';
+import { DIRECTORY_MODE } from './store-constants';
 import { touchMarker } from './touch-marker';
 import { writeMarker } from './write-marker';
 
@@ -22,7 +22,7 @@ export type PrepareOptions = {
 
 const createEmptyDir = (dir: string, sessionId: string, cwd: string): void => {
   mkdirSync(dir, { recursive: true, mode: DIRECTORY_MODE });
-  writeMarker(dir, createMarker(sessionId, cwd));
+  writeMarker(dir, sessionId, cwd);
 };
 
 const copyForkSource = (options: PrepareOptions & { forkSource: { dir: string; sessionId: string } }): void => {
@@ -30,16 +30,24 @@ const copyForkSource = (options: PrepareOptions & { forkSource: { dir: string; s
   if (readMarker(forkSource.dir) == null) throw new Error('Fork source has no scratchpad');
 
   mkdirSync(dirname(dir), { recursive: true, mode: DIRECTORY_MODE });
-  cpSync(forkSource.dir, dir, { recursive: true, filter: source => !isSymlink(source) && basename(source) !== MARKER });
-  writeMarker(dir, createMarker(sessionId, cwd, forkSource.sessionId));
+  cpSync(forkSource.dir, dir, {
+    recursive: true,
+    filter: source => !isSymlink(source) && !isBookkeepingFile(basename(source)),
+  });
+  writeMarker(dir, sessionId, cwd, forkSource.sessionId);
 };
 
-/** Creates, reuses or fork-copies the scratchpad of a root session (spec §8). */
+/**
+ * Creates, reuses or fork-copies the scratchpad of a root session and reports what happened:
+ * `existing` (reused; marker repaired or touched), `recreated` (the session had a scratchpad that is
+ * gone, e.g. after TTL or OS cleanup), `created`, `forked` (copied from the source session without
+ * symlinks and bookkeeping files) or `fork-failed` (copy failed; starts empty instead).
+ */
 export const prepareRootDir = (options: PrepareOptions): PrepareStatus => {
   const { dir, sessionId, cwd, hadScratchpad, forkSource } = options;
 
   if (existsSync(dir)) {
-    if (readMarker(dir) == null) writeMarker(dir, createMarker(sessionId, cwd));
+    if (readMarker(dir) == null) writeMarker(dir, sessionId, cwd);
     else touchMarker(dir);
 
     return 'existing';

@@ -13,7 +13,7 @@ do not add validation, refactoring, dependencies or other unapproved work withou
 - `src/{config,paths,registry,store,index-builder,prompt,cleanup}/` — pure Node modules without pi runtime dependency.
 
 Conventions follow YCM2 `packages/utilities`: one folder per topic, one exported function per kebab-case
-file, a barrel `index.ts` per folder, colocated `*.spec.ts` tests named `should …`.
+file, a barrel `index.ts` per folder that exports only what other folders use, colocated `*.spec.ts` tests named `should …`.
 
 ## TypeScript Conventions
 
