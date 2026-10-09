@@ -1,6 +1,7 @@
 {
   "name": "@anndii/pi-scratchpad",
   "version": "0.1.0",
+  "private": true,
   "description": "Session-scoped scratchpad directory for pi, shared with subagents and re-announced after compaction.",
   "keywords": [
     "pi-extension",
@@ -17,15 +18,8 @@
     "type": "git",
     "url": "git+https://github.com/aNNdii/pi-scratchpad.git"
   },
-  "files": [
-    "src",
-    "!src/**/*.spec.ts"
-  ],
   "type": "module",
   "sideEffects": false,
-  "publishConfig": {
-    "access": "public"
-  },
   "scripts": {
     "prepare": "husky || true",
     "test": "vitest run --coverage",

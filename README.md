@@ -43,11 +43,17 @@ The system prompt sets these rules:
 
 ## Install
 
+The extension is not published on npm; install it from GitHub or from a local clone:
+
 ```bash
-pi install npm:@anndii/pi-scratchpad
-# or straight from GitHub
 pi install git:github.com/aNNdii/pi-scratchpad
+# or from a local clone
+git clone https://github.com/aNNdii/pi-scratchpad.git
+pi install ./pi-scratchpad
 ```
+
+Add `-l` to declare it in the project's `.pi/settings.json` instead of `~/.pi/agent/settings.json`.
+pi loads the TypeScript sources directly; there is no build step.
 
 ## Layout
 
@@ -66,7 +72,7 @@ Resumed sessions reuse their directory, forks get a copy, `/new` starts empty.
 | Setting   | Source (highest first)                                                              | Default                                  |
 | --------- | ----------------------------------------------------------------------------------- | ---------------------------------------- |
 | `baseDir` | `PI_SCRATCHPAD_DIR`, `<project>/.pi/scratchpad.json`, `~/.pi/agent/scratchpad.json` | `/tmp/pi-<uid>` (`%TEMP%\pi` on Windows) |
-| `ttlDays` | `<project>/.pi/scratchpad.json`, `~/.pi/agent/scratchpad.json`                      | `14` (`0` disables automatic cleanup)    |
+| `ttlDays` | `<project>/.pi/scratchpad.json`, `~/.pi/agent/scratchpad.json`                      | `14` (`0` disables TTL cleanup)          |
 
 ```json
 { "baseDir": "~/.pi/agent/scratchpad", "ttlDays": 30 }
@@ -75,7 +81,7 @@ Resumed sessions reuse their directory, forks get a copy, `/new` starts empty.
 ## Commands
 
 - `/scratchpad` — show the path and the index.
-- `/scratchpad clean` — delete scratchpads unused for more than `ttlDays`.
+- `/scratchpad clean` — delete scratchpads unused for more than `ttlDays` (nothing when `ttlDays` is `0`).
 - `/scratchpad clean --all` — delete all scratchpads except those of active sessions.
 - `/scratchpad clean --current` — empty the current session's scratchpad.
 
